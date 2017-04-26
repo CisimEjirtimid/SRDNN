@@ -107,7 +107,7 @@ namespace dnn
             DLIB_CASSERT(input_tensor.num_samples() % sub.sample_expansion_factor() == 0);
             DLIB_CASSERT(input_tensor.num_samples() == grad.num_samples());
             DLIB_CASSERT(input_tensor.num_samples() == output_tensor.num_samples());
-            DLIB_CASSERT(output_tensor.k() == 3); // rgb_pixel
+            //DLIB_CASSERT(output_tensor.k() == 3); // rgb_pixel
             DLIB_CASSERT(output_tensor.nr() == grad.nr() &&
                 output_tensor.nc() == grad.nc());
 
