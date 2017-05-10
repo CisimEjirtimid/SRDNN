@@ -141,8 +141,8 @@ namespace dnn
                             auto truth_color = channel_from_index(y, k);
 
                             auto diff = truth_color - output;
-                            loss += scale * (diff);
-                            g[idx] = -diff;
+                            loss += scale * diff * diff;
+                            g[idx] = -2 * scale * diff;
                         }
                     }
                 }
