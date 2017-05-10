@@ -118,16 +118,14 @@ namespace dnn
                     (*truth_matrix_ptr).nc() == output_tensor.nc());
             }
 
-            dlib::tt::softmax(grad, output_tensor);
-
             // The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
-            const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.nr() * output_tensor.nc());
+            const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.nr() * output_tensor.nc() * output_tensor.k());
             double loss = 0;
             float* const g = grad.host();
 
             auto iter = output_tensor.begin();
 
-            for (long i = 0; i < output_tensor.num_samples(); ++i, ++truth)
+            for (long i = 0; i < output_tensor.num_samples(); ++i)
             {
                 for (long r = 0; r < output_tensor.nr(); ++r)
                 {
@@ -140,15 +138,11 @@ namespace dnn
                             const size_t idx = tensor_index(output_tensor, i, r, c, k);
                             auto output = static_cast<unsigned char>(*(iter + idx) * 255);
 
-                            if (output == channel_from_index(y, k))
-                            {
-                                loss += scale*-std::log(g[idx]);
-                                g[idx] = scale*(g[idx] - 1);
-                            }
-                            else
-                            {
-                                g[idx] = scale*g[idx];
-                            }
+                            auto truth_color = channel_from_index(y, k);
+
+                            auto diff = truth_color - output;
+                            loss += scale * (diff);
+                            g[idx] = -diff;
                         }
                     }
                 }
