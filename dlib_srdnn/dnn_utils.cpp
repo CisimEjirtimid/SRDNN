@@ -34,9 +34,6 @@ namespace utils
 
             if (++count % 100 == 0)
                 std::cout << count << " images loaded." << std::endl;
-
-            if (count == 100)
-                break;
         }
 
         return images;
@@ -60,11 +57,15 @@ namespace utils
     {
         std::vector<dlib::matrix<dlib::rgb_pixel>> upsampled;
 
+	int count = 0;
         for (auto& img : dataset)
         {
             dlib::matrix<dlib::rgb_pixel> upsample(new_size.height(), new_size.width());
             dlib::resize_image(img, upsample, dlib::interpolate_bilinear());
             upsampled.push_back(upsample);
+            
+	    if (++count % 100 == 0)
+                std::cout << count << " images resized." << std::endl;
         }
 
         return upsampled;

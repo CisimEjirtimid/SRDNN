@@ -20,7 +20,8 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    auto images = utils::load_dataset(std::string(argv[1]));
+    std::string str(argv[1]);
+    auto images = utils::load_dataset(str);
 
     std::vector<dlib::matrix<dlib::rgb_pixel>> dnninput;
 
@@ -28,6 +29,8 @@ int main(int argc, char** argv)
         auto downsampled = utils::resize_dataset(images, 0.5);
         dnninput = utils::resize_dataset(downsampled, dlib::rectangle(images[0].nc(), images[0].nr()));
     }
+
+    std::cerr << "Resizing data done." << std::endl;
 
 //#ifdef _DEBUG
 //    dlib::image_window img1, img2;
@@ -49,9 +52,9 @@ int main(int argc, char** argv)
     //    input<matrix<rgb_pixel>>>>>>>>>>>>>;
 
     using sr_net = loss_avg<
-        relu<con<3, 1, 1, 1, 1,
+        relu<con<3,  1, 1, 1, 1,
         relu<con<12, 3, 3, 1, 1,
-        relu<con<9, 5, 5, 1, 1,
+        relu<con<9,  5, 5, 1, 1,
         input<matrix<rgb_pixel>>>>>>>>>;
 
     sr_net dnnet;
@@ -63,7 +66,7 @@ int main(int argc, char** argv)
     trainer.be_verbose();
 
 
-    trainer.set_synchronization_file("srdnn_sync", std::chrono::seconds(60));
+    trainer.set_synchronization_file("srdnn_sync", std::chrono::minutes(10));
 
     trainer.train(dnninput, images);
 }
