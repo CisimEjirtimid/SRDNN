@@ -120,10 +120,12 @@ namespace dnn
 
             // The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
             const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.nr() * output_tensor.nc() * output_tensor.k());
+            
             double loss = 0;
-            float* const g = grad.host();
 
-            auto iter = output_tensor.begin();
+            float* g = grad.host();
+
+            const float* out_data = output_tensor.host();
 
             for (long i = 0; i < output_tensor.num_samples(); ++i)
             {
@@ -131,18 +133,19 @@ namespace dnn
                 {
                     for (long c = 0; c < output_tensor.nc(); ++c)
                     {
-                        const dlib::rgb_pixel y = truth->operator()(r, c);
+                        const_label_iterator truth_matrix_ptr = (truth + i);
+                        const dlib::rgb_pixel y = (*truth_matrix_ptr)(r, c);
 
                         for (long k = 0; k < output_tensor.k(); k++)
                         {
                             const size_t idx = tensor_index(output_tensor, i, r, c, k);
-                            auto output = static_cast<unsigned char>(*(iter + idx) * 255);
+                            auto output = static_cast<unsigned char>(out_data[idx] * 255);
 
                             auto truth_color = channel_from_index(y, k);
 
-                            auto diff = truth_color - output;
-                            loss += scale * diff * diff;
-                            g[idx] = -2 * scale * diff;
+                            auto diff = float(truth_color - output)/255.0f;
+                            loss += 0.5 * scale * diff * diff;
+                            g[idx] = -scale * diff;
                         }
                     }
                 }
