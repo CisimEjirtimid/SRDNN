@@ -139,11 +139,11 @@ namespace dnn
                         for (long k = 0; k < output_tensor.k(); k++)
                         {
                             const size_t idx = tensor_index(output_tensor, i, r, c, k);
-                            auto output = static_cast<unsigned char>(out_data[idx] * 255);
+                            auto output = static_cast<unsigned char>(out_data[idx] * 256);
 
                             auto truth_color = channel_from_index(y, k);
 
-                            auto diff = float(truth_color - output)/255.0f;
+                            auto diff = float(truth_color - output)/256.0f;
                             loss += 0.5 * scale * diff * diff;
                             g[idx] = -scale * diff;
                         }
