@@ -98,60 +98,61 @@ namespace dnn
             const dlib::tensor& input_tensor,
             const_label_iterator truth,
             SUBNET& sub) const
-        {
-            const dlib::tensor& output_tensor = sub.get_output();
-            dlib::tensor& grad = sub.get_gradient_input();
+	{
+		const dlib::tensor& output_tensor = sub.get_output();
+		dlib::tensor& grad = sub.get_gradient_input();
 
-            DLIB_CASSERT(sub.sample_expansion_factor() == 1);
-            DLIB_CASSERT(input_tensor.num_samples() != 0);
-            DLIB_CASSERT(input_tensor.num_samples() % sub.sample_expansion_factor() == 0);
-            DLIB_CASSERT(input_tensor.num_samples() == grad.num_samples());
-            DLIB_CASSERT(input_tensor.num_samples() == output_tensor.num_samples());
-            //DLIB_CASSERT(output_tensor.k() == 3); // rgb_pixel
-            DLIB_CASSERT(output_tensor.nr() == grad.nr() &&
-                output_tensor.nc() == grad.nc());
+		DLIB_CASSERT(sub.sample_expansion_factor() == 1);
+		DLIB_CASSERT(input_tensor.num_samples() != 0);
+		DLIB_CASSERT(input_tensor.num_samples() % sub.sample_expansion_factor() == 0);
+		DLIB_CASSERT(input_tensor.num_samples() == grad.num_samples());
+		DLIB_CASSERT(input_tensor.num_samples() == output_tensor.num_samples());
+		//DLIB_CASSERT(output_tensor.k() == 3); // rgb_pixel
+		DLIB_CASSERT(output_tensor.nr() == grad.nr() &&
+				output_tensor.nc() == grad.nc());
 
-            for (long idx = 0; idx < output_tensor.num_samples(); ++idx)
-            {
-                const_label_iterator truth_matrix_ptr = (truth + idx);
-                DLIB_CASSERT((*truth_matrix_ptr).nr() == output_tensor.nr() &&
-                    (*truth_matrix_ptr).nc() == output_tensor.nc());
-            }
+		for (long idx = 0; idx < output_tensor.num_samples(); ++idx)
+		{
+			const_label_iterator truth_matrix_ptr = (truth + idx);
+			DLIB_CASSERT((*truth_matrix_ptr).nr() == output_tensor.nr() &&
+					(*truth_matrix_ptr).nc() == output_tensor.nc());
+		}
 
-            // The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
-            const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.nr() * output_tensor.nc() * output_tensor.k());
-            
-            double loss = 0;
+		// The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
+		const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.nr() * output_tensor.nc() * output_tensor.k());
+		std::cerr << "Scale:" << scale << std::endl;
 
-            float* g = grad.host();
+		double loss = 0;
 
-            const float* out_data = output_tensor.host();
+		float* g = grad.host();
 
-            for (long i = 0; i < output_tensor.num_samples(); ++i)
-            {
-                for (long r = 0; r < output_tensor.nr(); ++r)
-                {
-                    for (long c = 0; c < output_tensor.nc(); ++c)
-                    {
-                        const_label_iterator truth_matrix_ptr = (truth + i);
-                        const dlib::rgb_pixel y = (*truth_matrix_ptr)(r, c);
+		const float* out_data = output_tensor.host();
 
-                        for (long k = 0; k < output_tensor.k(); k++)
-                        {
-                            const size_t idx = tensor_index(output_tensor, i, r, c, k);
-                            auto output = static_cast<unsigned char>(out_data[idx] * 256);
+		for (long k = 0; k < output_tensor.k(); k++)
+		{
+			for (long i = 0; i < output_tensor.num_samples(); ++i)
+			{
+		        for (long r = 0; r < output_tensor.nr(); ++r)
+				{
+				    for (long c = 0; c < output_tensor.nc(); ++c)
+					{
+					    const_label_iterator truth_matrix_ptr = (truth + i);
+						const dlib::rgb_pixel y = (*truth_matrix_ptr)(r, c);
 
-                            auto truth_color = channel_from_index(y, k);
+						const size_t idx = tensor_index(output_tensor, i, r, c, k);
+						auto output = static_cast<unsigned char>(out_data[idx] * 256);
 
-                            auto diff = float(truth_color - output)/256.0f;
-                            loss += 0.5 * scale * diff * diff;
-                            g[idx] = -scale * diff;
-                        }
-                    }
-                }
-            }
-            return loss;
-        }
+						auto truth_color = channel_from_index(y, k);
+
+						auto diff = float(truth_color - output)/256.0f;
+						loss += 0.5 * scale * diff * diff;
+						g[idx] = -scale * diff;
+					}
+				}
+			}
+		}
+		return loss;
+	}
         /*!
         requires
         - SUBNET implements the SUBNET interface defined at the top of

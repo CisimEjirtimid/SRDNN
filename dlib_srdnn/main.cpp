@@ -53,16 +53,17 @@ int main(int argc, char** argv)
 
     using sr_net = loss_avg<
         relu<con<3,  1, 1, 1, 1,
-        relu<con<12, 3, 3, 1, 1,
-        relu<con<9,  5, 5, 1, 1,
-        input<matrix<rgb_pixel>>>>>>>>>;
+        relu<con<16, 3, 3, 1, 1,
+        relu<con<32, 5, 5, 1, 1,
+	relu<con<32, 7, 7, 1, 1,
+        input<matrix<rgb_pixel>>>>>>>>>>>;
 
     sr_net dnnet;
 
     dnn_trainer<sr_net> trainer(dnnet);
     trainer.set_learning_rate(0.01);
     trainer.set_min_learning_rate(0.0001);
-    trainer.set_mini_batch_size(100);
+    trainer.set_mini_batch_size(50);
     trainer.be_verbose();
 
 
