@@ -127,23 +127,23 @@ namespace dnn
 
             const float* out_data = output_tensor.host();
 
-            for (long i = 0; i < output_tensor.num_samples(); ++i)
+            for (long k = 0; k < output_tensor.k(); k++)
             {
-                for (long r = 0; r < output_tensor.nr(); ++r)
+                for (long i = 0; i < output_tensor.num_samples(); ++i)
                 {
-                    for (long c = 0; c < output_tensor.nc(); ++c)
+                    for (long r = 0; r < output_tensor.nr(); ++r)
                     {
-                        const_label_iterator truth_matrix_ptr = (truth + i);
-                        const dlib::rgb_pixel y = (*truth_matrix_ptr)(r, c);
-
-                        for (long k = 0; k < output_tensor.k(); k++)
+                        for (long c = 0; c < output_tensor.nc(); ++c)
                         {
+                            const_label_iterator truth_matrix_ptr = (truth + i);
+                            const dlib::rgb_pixel y = (*truth_matrix_ptr)(r, c);
+
                             const size_t idx = tensor_index(output_tensor, i, r, c, k);
                             auto output = static_cast<unsigned char>(out_data[idx] * 256);
 
                             auto truth_color = channel_from_index(y, k);
 
-                            auto diff = float(truth_color - output)/256.0f;
+                            auto diff = float(truth_color - output) / 256.0f;
                             loss += 0.5 * scale * diff * diff;
                             g[idx] = -scale * diff;
                         }
@@ -152,6 +152,7 @@ namespace dnn
             }
             return loss;
         }
+
         /*!
         requires
         - SUBNET implements the SUBNET interface defined at the top of
