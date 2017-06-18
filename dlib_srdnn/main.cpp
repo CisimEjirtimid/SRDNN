@@ -43,30 +43,45 @@ int main(int argc, char** argv)
 //    cin >> end;
 //#endif
 
-    //using sr_net = loss_avg<
-    //    relu<con<16, 1, 1, 1, 1,
-    //    relu<con<16, 3, 3, 1, 1,
-    //    relu<con<16, 5, 5, 1, 1,
-    //    relu<con<16, 7, 7, 1, 1,
-    //    relu<con<16, 9, 9, 1, 1,
-    //    input<matrix<rgb_pixel>>>>>>>>>>>>>;
-
     using sr_net = loss_avg<
-        relu<con<3,  1, 1, 1, 1,
-        relu<con<12, 3, 3, 1, 1,
-        relu<con<9,  5, 5, 1, 1,
-        input<matrix<rgb_pixel>>>>>>>>>;
+        relu<con<3,     1,  1,  1,  1,
+        relu<con<64,    3,  3,  1,  1,
+        relu<con<64,    5,  5,  1,  1,
+        relu<con<64,    7,  7,  1,  1,
+        relu<con<64,    9,  9,  1,  1,
+        relu<con<64,    11, 11, 1,  1,
+        relu<con<64,    13, 13, 1,  1,
+        relu<con<64,    15, 15, 1,  1,
+        relu<con<64,    17, 17, 1,  1,
+        relu<con<64,    19, 19, 1,  1,
+        relu<con<64,    21, 21, 1,  1,
+        relu<con<64,    23, 23, 1,  1,
+        relu<con<64,    25, 25, 1,  1,
+        relu<con<64,    27, 27, 1,  1,
+        input_rgb_image>>>>>>>>>>>>>>>>>>>>>>>>>>>>>;
+
+    //using sr_net = loss_avg<
+    //    relu<con<3, 1, 1, 1, 1,
+    //    relu<con<16, 3, 3, 1, 1,
+    //    relu<con<256, 5, 5, 1, 1,
+    //    relu<con<256, 7, 7, 1, 1,
+    //    input_rgb_image>>>>>>>>>;
+
+    //using sr_net = loss_avg<
+    //    relu<con<3,  1, 1, 1, 1,
+    //    relu<con<60, 3, 3, 1, 1,
+    //    relu<con<30, 5, 5, 1, 1,
+    //    input<matrix<rgb_pixel>>>>>>>>>;
 
     sr_net dnnet;
 
     dnn_trainer<sr_net> trainer(dnnet);
-    trainer.set_learning_rate(0.01);
+    trainer.set_learning_rate(0.1);
     trainer.set_min_learning_rate(0.0001);
-    trainer.set_mini_batch_size(100);
+    trainer.set_mini_batch_size(1);
     trainer.be_verbose();
 
-
-    trainer.set_synchronization_file("srdnn_sync", std::chrono::minutes(10));
+    trainer.set_synchronization_file("srdnn_sync", chrono::minutes(10));
 
     trainer.train(dnninput, images);
 }
