@@ -1,7 +1,7 @@
 #include <dlib/dnn.h>
 
-#include "dnn_setup.h"
 #include "dnn_utils.h"
+#include "loss_layer.h"
 
 using namespace dlib;
 using namespace std;
@@ -15,10 +15,28 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    std::string str(argv[1]);
+    string str(argv[1]);
 
     auto images = utils::load_dataset(str);
+    images = utils::resize_dataset(images, rectangle(images[0].nr() + 1, images[0].nc()));
     auto downsampled = utils::resize_dataset(images, 0.5);
+
+    using sr_net = loss_avg<add_prev1<
+        relu<con<3, 1, 1, 1, 1,
+        relu<con<64, 3, 3, 1, 1,
+        relu<con<64, 5, 5, 1, 1,
+        relu<con<64, 7, 7, 1, 1,
+        relu<con<64, 9, 9, 1, 1,
+        relu<con<64, 11, 11, 1, 1,
+        relu<con<64, 13, 13, 1, 1,
+        relu<con<64, 15, 15, 1, 1,
+        relu<con<64, 17, 17, 1, 1,
+        relu<con<64, 19, 19, 1, 1,
+        relu<con<64, 21, 21, 1, 1,
+        relu<con<64, 23, 23, 1, 1,
+        relu<con<64, 25, 25, 1, 1,
+        relu<con<64, 27, 27, 1, 1,
+        tag1<upsample<2, input_rgb_image>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>;
 
     sr_net dnnet;
 
