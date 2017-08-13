@@ -220,7 +220,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -236,7 +236,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -252,7 +252,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -318,7 +318,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -338,7 +338,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -358,7 +358,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -378,7 +378,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CONSOLE;DLIB_DISABLE_ASSERTS;DLIB_JPEG_SUPPORT;DLIB_USE_CUDA;NDEBUG;%(PreprocessorDefinitions);DLIB_JPEG_SUPPORT;DLIB_JPEG_SUPPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -398,7 +398,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CONSOLE;DLIB_DISABLE_ASSERTS;DLIB_JPEG_SUPPORT;NDEBUG;%(PreprocessorDefinitions);DLIB_JPEG_SUPPORT;DLIB_JPEG_SUPPORT</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -418,7 +418,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CONSOLE;DLIB_DISABLE_ASSERTS;DLIB_JPEG_SUPPORT;DLIB_USE_BLAS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\git\dlib-19.1;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\git\dlib-19.4\dlib;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -435,6 +435,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dnn_setup.h" />
     <ClInclude Include="dnn_utils.h" />
     <ClInclude Include="loss_layer.h" />
   </ItemGroup>
