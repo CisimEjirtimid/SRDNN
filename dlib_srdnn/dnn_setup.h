@@ -10,58 +10,62 @@ using namespace dlib;
 
 namespace dnn
 {
-    //using sr_net = loss_avg<
-    //    relu<con<3, 1, 1, 1, 1,
-    //    relu<con<16, 3, 3, 1, 1,
-    //    relu<con<256, 5, 5, 1, 1,
-    //    relu<con<256, 7, 7, 1, 1,
-    //    input_rgb_image>>>>>>>>>;
+    // rbc = Convolution - Batch Normalization - ReLU -- block -- for network training
+    template<
+        int num_filters,
+        int conv_size,
+        typename SUBNET
+    >
+    using rbc_block = relu<bn_con<con<num_filters, conv_size, conv_size, 1, 1, SUBNET>>>;
 
-    //using sr_net = loss_avg<
-    //    relu<con<3,  1, 1, 1, 1,
-    //    relu<con<60, 3, 3, 1, 1,
-    //    relu<con<30, 5, 5, 1, 1,
-    //    input<matrix<rgb_pixel>>>>>>>>>;
+    // rac = Convolution - Affine - ReLU -- block -- for network evalation
+    template<
+        int num_filters,
+        int conv_size,
+        typename SUBNET
+    >
+    using rac_block = relu<affine<con<num_filters, conv_size, conv_size, 1, 1, SUBNET>>>;
 
-    //using sr_net = loss_avg<
-    //    relu<con<3, 1, 1, 1, 1,
-    //    relu<con<64, 3, 3, 1, 1,
-    //    relu<con<64, 5, 5, 1, 1,
-    //    relu<con<64, 7, 7, 1, 1,
-    //    relu<con<64, 9, 9, 1, 1,
-    //    relu<con<64, 11, 11, 1, 1,
-    //    relu<con<64, 13, 13, 1, 1,
-    //    relu<con<64, 15, 15, 1, 1,
-    //    relu<con<64, 17, 17, 1, 1,
-    //    relu<con<64, 19, 19, 1, 1,
-    //    relu<con<64, 21, 21, 1, 1,
-    //    relu<con<64, 23, 23, 1, 1,
-    //    relu<con<64, 25, 25, 1, 1,
-    //    relu<con<64, 27, 27, 1, 1,
-    //    input_rgb_image>>>>>>>>>>>>>>>>>>>>>>>>>>>>>;
+    template<
+        int num_filters,
+        int conv_size,
+        template<typename> class BN,
+        typename SUBNET
+    >
+    using block = relu<BN<con<num_filters, conv_size, conv_size, 1, 1, SUBNET>>>;
 
-    using input_layer = upsample<2, input_rgb_image>;
+    // output = 3 filters - one for each channel in pixel
+    template<
+        typename SUBNET
+    >
+    using output_block = relu<con<3, 1, 1, 1, 1, SUBNET>>;
 
+    // input = bilinear upsample of the input image
+    template<
+        int scale
+    >
+    using input_block = upsample<scale, input_rgb_image>;
+
+    // self-explanatory
     template <
-        int N,
+        template<typename> class BN,
         typename SUBNET
     >
     using con_block = 
-        relu<bn_con<con<3,  1,  1,  1,  1,
-        relu<bn_con<con<N,  3,  3,  1,  1,
-        relu<bn_con<con<N,  5,  5,  1,  1,
-        relu<bn_con<con<N,  7,  7,  1,  1,
-        relu<bn_con<con<N,  9,  9,  1,  1,
-        relu<bn_con<con<N,  11, 11, 1,  1,
-        relu<bn_con<con<N,  13, 13, 1,  1,
-        relu<bn_con<con<N,  15, 15, 1,  1,
-        relu<bn_con<con<N,  17, 17, 1,  1,
-        relu<bn_con<con<N,  19, 19, 1,  1,
-        relu<bn_con<con<N,  21, 21, 1,  1,
-        relu<bn_con<con<N,  23, 23, 1,  1,
-        relu<bn_con<con<N,  25, 25, 1,  1,
-        relu<bn_con<con<N,  27, 27, 1,  1,
-        SUBNET>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>;
+        block<64,   3,  BN,
+        block<64,   5,  BN,
+        block<64,   7,  BN,
+        block<64,   9,  BN,
+        block<64,   11, BN,
+        block<64,   13, BN,
+        block<64,   15, BN,
+        block<64,   17, BN,
+        block<64,   19, BN,
+        block<64,   21, BN,
+        block<64,   23, BN,
+        block<64,   25, BN,
+        block<64,   27, BN,
+        SUBNET>>>>>>>>>>>>>;
 
     // residual creates a network structure like this:
     /*
@@ -76,13 +80,23 @@ namespace dnn
              output
     */
     template <
-        int N,
+        template<template<typename> class, typename> class block,
+        template<typename> class BN,
         typename SUBNET
     >
-    using residual = add_prev1<con_block<N, tag1<SUBNET>>>;
+    using residual = add_prev1<block<BN, tag1<SUBNET>>>;
 
-    using sr_net =
-        loss_avg<
-        residual<64,
-        input_layer>>;
+    template<
+        template<typename> class BN
+    >
+    using net_def = 
+        loss_pixel<
+        output_block<
+        residual<BN,
+        con_block,
+        input_block<2>>>>;
+
+    using sr_net = net_def<bn_con>;
+
+    using sr_eval_net = net_def<affine>;
 }
