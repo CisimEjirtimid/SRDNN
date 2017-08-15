@@ -10,6 +10,8 @@ using namespace dnn;
 #include <dlib/gui_core.h>
 #include <dlib/gui_widgets.h>
 
+#include <argagg/argagg.hpp>
+
 using sr_net = loss_pixel<add_prev1<
     relu<con<3, 1, 1, 1, 1,
     relu<con<64, 3, 3, 1, 1,
