@@ -35,5 +35,8 @@
     <ClInclude Include="dnn_setup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="input_parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

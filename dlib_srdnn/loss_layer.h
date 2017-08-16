@@ -8,6 +8,31 @@ namespace dnn
 {
     namespace
     {
+        // copied from dlib/input.h - input_rgb_image
+        float   avg_red(122.782 / 256.0),
+                avg_green(117.001 / 256.0),
+                avg_blue(104.298 / 256.0);
+
+        float average_color_from_index(int idx)
+        {
+            switch (idx)
+            {
+            case 0:
+                return avg_red;
+            case 1:
+                return avg_green;
+            case 2:
+                return avg_blue;
+            default:
+                return 0;
+            }
+        }
+
+        float clip_to_char(float input)
+        {
+            return std::min(255.0f, std::max(0.0f, input));
+        }
+
         unsigned char channel_from_index(const dlib::rgb_pixel pix, int idx)
         {
             switch (idx)
@@ -18,8 +43,9 @@ namespace dnn
                 return pix.green;
             case 2:
                 return pix.blue;
+            default:
+                return 0;
             }
-            return 0;
         }
 
         void indexed_color_to_channel(dlib::rgb_pixel& pix, unsigned char color, int idx)
@@ -103,7 +129,7 @@ namespace dnn
                         {
                             auto idx = tensor_index(output_tensor, i, r, c, k);
 
-                            indexed_color_to_channel(network_out(r, c), out_data[idx] * 256, k);
+                            indexed_color_to_channel(network_out(r, c), clip_to_char(out_data[idx] * 256.0), k);
                         }
                     }
                 }
@@ -183,7 +209,7 @@ namespace dnn
 
                             auto truth_color = float(channel_from_index(truth_pixel, k)) / 256;
 
-                            auto error = truth_color - out_data[idx];
+                            auto error = truth_color - out_data[idx];// +average_color_from_index(k);
                             loss += scale * error * error;
                             g[idx] = -scale * error;
                         }

@@ -437,6 +437,7 @@
   <ItemGroup>
     <ClInclude Include="dnn_setup.h" />
     <ClInclude Include="dnn_utils.h" />
+    <ClInclude Include="input_parser.h" />
     <ClInclude Include="loss_layer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

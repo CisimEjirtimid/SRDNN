@@ -71,5 +71,28 @@ namespace utils
 
         return upsampled;
     }
+
+    dlib::matrix<dlib::rgb_pixel> difference(const dlib::matrix<dlib::rgb_pixel>& first, const dlib::matrix<dlib::rgb_pixel>& second)
+    {
+        DLIB_CASSERT(first.nr() == second.nr());
+        DLIB_CASSERT(first.nc() == second.nc());
+
+        auto res = dlib::matrix<dlib::rgb_pixel>(first.nr(), first.nc());
+
+        for (auto i = 0; i < first.nr(); i++)
+        {
+            for(auto j = 0; j < first.nc(); j++)
+            {
+                auto first_pix = first(i, j);
+                auto second_pix = second(i, j);
+
+                res(i, j).red = first_pix.red - second_pix.red;
+                res(i, j).green = first_pix.green - second_pix.green;
+                res(i, j).blue = first_pix.blue - second_pix.blue;
+            }
+        }
+
+        return res;
+    }
 }
 }
