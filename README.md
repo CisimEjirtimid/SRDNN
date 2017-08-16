@@ -2,7 +2,7 @@
 
 ## Super-Resolution using Deep Neural Networks, a *C++ Project*
 
-This application was made with usage of **dlib** computer vision library, and **argagg** argument parsing library.
+This application was made using **dlib** computer vision library, and **argagg** argument parsing library.
 
 dlib version - 19.4
 argagg version - 0.46
