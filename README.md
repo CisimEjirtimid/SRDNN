@@ -4,8 +4,10 @@
 
 This application was made using **dlib** computer vision library, and **argagg** argument parsing library.
 
-dlib version - 19.4
-argagg version - 0.46
+Versions of the libraries for building this project:
+
+* dlib - version 19.4
+* argagg - version 0.46
 
 ## Example usage
 
