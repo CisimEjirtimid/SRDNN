@@ -1,87 +1,134 @@
 #include <dlib/dnn.h>
 
-#ifdef _DEBUG
-#include <dlib/gui_core.h>
-#include <dlib/gui_widgets.h>
-#endif
-
-#include "loss_layer.h"
+#include "input_parser.h"
 #include "dnn_utils.h"
+#include "dnn_setup.h"
+#include "loss_layer.h"
 
 using namespace dlib;
 using namespace std;
 using namespace dnn;
 
-int main(int argc, char** argv)
+#include <dlib/gui_core.h>
+#include <dlib/gui_widgets.h>
+
+namespace
 {
-    if (argc != 2)
+    void print_help()
     {
-        cout << "Give a folder as input.  It should contain images for super-resolution deep learning process." << endl;
-        return 1;
+        cerr << "Simple SRDNN training/evaluation program" << endl;
+        cerr << dnn::input::parser;
     }
 
-    std::string str(argv[1]);
-    auto images = utils::load_dataset(str);
-
-    std::vector<dlib::matrix<dlib::rgb_pixel>> dnninput;
-
+    void training(argagg::parser_results args)
     {
-        auto downsampled = utils::resize_dataset(images, 0.5);
-        dnninput = utils::resize_dataset(downsampled, dlib::rectangle(images[0].nc(), images[0].nr()));
+        if (!bool(args["input"]))
+        {
+            cerr << "Invalid usage! Input is missing!" << endl;
+            cerr << dnn::input::parser;
+        }
+
+        string str(args["input"].as<string>());
+
+        auto images = utils::load_dataset(str);
+
+        auto compatible_rect = rectangle(images[0].nr() + images[0].nr() % SR_SCALE, images[0].nc() + images[0].nc() % SR_SCALE);
+        images = utils::resize_dataset(images, compatible_rect);
+        auto downsampled = utils::resize_dataset(images, 1 / SR_SCALE);
+
+        simple_net dnnet;
+
+        dnn_trainer<simple_net> trainer(dnnet);
+        trainer.set_learning_rate(0.1);
+        trainer.set_min_learning_rate(0.0001);
+        trainer.set_mini_batch_size(2);
+        trainer.set_iterations_without_progress_threshold(500);
+        trainer.set_synchronization_file("sync_file", chrono::minutes(1));
+
+        trainer.be_verbose();
+
+        trainer.train(downsampled, images);
+
+        dnnet.clean();
+
+        if (args["output"])
+            serialize(args["output"].as<string>()) << dnnet;
+
+        if (args["xml"])
+            net_to_xml(dnnet, args["xml"].as<string>());
     }
 
-    std::cerr << "Resizing data done." << std::endl;
+    void evaluate(argagg::parser_results args)
+    {
+        if (!bool(args["input"]))
+        {
+            cerr << "Invalid usage! Input is missing!" << endl;
+            cerr << dnn::input::parser;
+            return;
+        }
 
-//#ifdef _DEBUG
-//    dlib::image_window img1, img2;
-//    img1.set_image(images[0]);
-//    img2.set_image(dnninput[0]);
-//    img1.show();
-//    img2.show();
-//
-//    int end;
-//    cin >> end;
-//#endif
+        if (!bool(args["net-input"]))
+        {
+            cerr << "Invalid usage! Network input is missing!" << endl;
+            cerr << dnn::input::parser;
+            return;
+        }
 
-    using sr_net = loss_avg<
-        relu<con<3,     1,  1,  1,  1,
-        relu<con<64,    3,  3,  1,  1,
-        relu<con<64,    5,  5,  1,  1,
-        relu<con<64,    7,  7,  1,  1,
-        relu<con<64,    9,  9,  1,  1,
-        relu<con<64,    11, 11, 1,  1,
-        relu<con<64,    13, 13, 1,  1,
-        relu<con<64,    15, 15, 1,  1,
-        relu<con<64,    17, 17, 1,  1,
-        relu<con<64,    19, 19, 1,  1,
-        relu<con<64,    21, 21, 1,  1,
-        relu<con<64,    23, 23, 1,  1,
-        relu<con<64,    25, 25, 1,  1,
-        relu<con<64,    27, 27, 1,  1,
-        input_rgb_image>>>>>>>>>>>>>>>>>>>>>>>>>>>>>;
+        matrix<rgb_pixel> img;
+        string str(args["input"].as<string>());
+        load_image(img, str);
 
-    //using sr_net = loss_avg<
-    //    relu<con<3, 1, 1, 1, 1,
-    //    relu<con<16, 3, 3, 1, 1,
-    //    relu<con<256, 5, 5, 1, 1,
-    //    relu<con<256, 7, 7, 1, 1,
-    //    input_rgb_image>>>>>>>>>;
+        simple_net dnnet;
+        deserialize(args["net-input"].as<string>()) >> dnnet;
 
-    //using sr_net = loss_avg<
-    //    relu<con<3,  1, 1, 1, 1,
-    //    relu<con<60, 3, 3, 1, 1,
-    //    relu<con<30, 5, 5, 1, 1,
-    //    input<matrix<rgb_pixel>>>>>>>>>;
+        std::vector<matrix<rgb_pixel>> eval;
+        eval.push_back(img);
 
-    sr_net dnnet;
+        auto res = dnnet(eval);
 
-    dnn_trainer<sr_net> trainer(dnnet);
-    trainer.set_learning_rate(0.1);
-    trainer.set_min_learning_rate(0.0001);
-    trainer.set_mini_batch_size(1);
-    trainer.be_verbose();
+        if (args["show"])
+        {
+            image_window original, net_output, difference;
 
-    trainer.set_synchronization_file("srdnn_sync", chrono::minutes(10));
+            matrix<rgb_pixel> resized(img.nr() * SR_SCALE, img.nc() * SR_SCALE);
+            resize_image(img, resized, interpolate_bilinear());
 
-    trainer.train(dnninput, images);
+            original.set_image(resized);
+            original.set_title("Original Image");
+
+            net_output.set_image(res[0]);
+            net_output.set_title("Evaluated Image");
+
+            difference.set_image(utils::difference(resized, res[0]));
+            difference.set_title("Difference between images");
+
+            original.show();
+            net_output.show();
+            difference.show();
+
+            int showing;
+            cin >> showing;
+        }
+    }
+}
+
+void main(int argc, char** argv) try
+{
+    auto args = dnn::input::parser.parse(argc, argv);
+
+    if (args["help"])
+        print_help();
+
+    if (args["train"])
+        training(args);
+
+    if (args["eval"])
+        evaluate(args);
+
+    int end;
+    cin >> end;
+}
+catch (exception& e)
+{
+    cerr << e.what() << endl;
 }

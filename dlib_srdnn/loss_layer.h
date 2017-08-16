@@ -8,6 +8,31 @@ namespace dnn
 {
     namespace
     {
+        // copied from dlib/input.h - input_rgb_image
+        float   avg_red(122.782 / 256.0),
+                avg_green(117.001 / 256.0),
+                avg_blue(104.298 / 256.0);
+
+        float average_color_from_index(int idx)
+        {
+            switch (idx)
+            {
+            case 0:
+                return avg_red;
+            case 1:
+                return avg_green;
+            case 2:
+                return avg_blue;
+            default:
+                return 0;
+            }
+        }
+
+        float clip_to_char(float input)
+        {
+            return std::min(255.0f, std::max(0.0f, input));
+        }
+
         unsigned char channel_from_index(const dlib::rgb_pixel pix, int idx)
         {
             switch (idx)
@@ -18,12 +43,31 @@ namespace dnn
                 return pix.green;
             case 2:
                 return pix.blue;
+            default:
+                return 0;
             }
-            return 0;
+        }
+
+        void indexed_color_to_channel(dlib::rgb_pixel& pix, unsigned char color, int idx)
+        {
+            switch (idx)
+            {
+            case 0:
+                pix.red = color;
+                break;
+            case 1:
+                pix.green = color;
+                break;
+            case 2:
+                pix.blue = color;
+                break;
+            default:
+                break;
+            }
         }
     }
 
-    class loss_avg_
+    class loss_pixel_
     {
     public:
 
@@ -31,7 +75,7 @@ namespace dnn
         typedef dlib::matrix<dlib::rgb_pixel> training_label_type;
         typedef dlib::matrix<dlib::rgb_pixel>   output_label_type;
 
-        loss_avg_(
+        loss_pixel_(
         )
         {
         }
@@ -41,8 +85,8 @@ namespace dnn
         - EXAMPLE_LOSS_LAYER_ objects are default constructable.
         !*/
 
-        loss_avg_(
-            const loss_avg_& item
+        loss_pixel_(
+            const loss_pixel_& item
         )
         {
         }
@@ -52,17 +96,46 @@ namespace dnn
         - EXAMPLE_LOSS_LAYER_ objects are copy constructable.
         !*/
 
+        static size_t tensor_index(const dlib::tensor& t, long sample, long row, long column, long k);
+
         // Implementing to_label() is optional.
         template <
             typename SUB_TYPE,
             typename label_iterator
         >
-            void to_label(
-                const dlib::tensor& input_tensor,
-                const SUB_TYPE& sub,
-                label_iterator iter
-            ) const
+        void to_label(
+            const dlib::tensor& input_tensor,
+            const SUB_TYPE& sub,
+            label_iterator iter
+        ) const
         {
+            DLIB_CASSERT(sub.sample_expansion_factor() == 1);
+
+            const dlib::tensor& output_tensor = sub.get_output();
+            DLIB_CASSERT(output_tensor.k() == 3);
+            DLIB_CASSERT(input_tensor.num_samples() == output_tensor.num_samples());
+
+            auto out_data = output_tensor.host();
+
+            for (long i = 0; i < output_tensor.num_samples(); ++i)
+            {
+                output_label_type network_out(output_tensor.nr(), output_tensor.nc());
+
+                for (long r = 0; r < output_tensor.nr(); ++r)
+                {
+                    for (long c = 0; c < output_tensor.nc(); ++c)
+                    {
+                        for (long k = 0; k < output_tensor.k(); ++k)
+                        {
+                            auto idx = tensor_index(output_tensor, i, r, c, k);
+
+                            indexed_color_to_channel(network_out(r, c), clip_to_char(out_data[idx] * 256.0), k);
+                        }
+                    }
+                }
+
+                *iter++ = std::move(network_out);
+            }
         }
         /*!
         requires
@@ -82,13 +155,6 @@ namespace dnn
         *(iter+i/sub.sample_expansion_factor()) is populated based on the output of
         sub and corresponds to the ith sample in input_tensor.
         !*/
-
-        static size_t tensor_index(const dlib::tensor& t, long sample, long row, long column, long k);
-
-        //Y = 0.299R + 0.587G + 0.114B
-        //U = -0.147R - 0.289G + 0.436B
-        //V = 0.615R - 0.515G - 0.100B
-        //static rgb_to_yuv
 
         template <
             typename const_label_iterator,
@@ -127,25 +193,25 @@ namespace dnn
 
             const float* out_data = output_tensor.host();
 
-            for (long k = 0; k < output_tensor.k(); k++)
+            for (long i = 0; i < output_tensor.num_samples(); ++i)
             {
-                for (long i = 0; i < output_tensor.num_samples(); ++i)
+                const_label_iterator truth_matrix_ptr = (truth + i);
+
+                for (long r = 0; r < output_tensor.nr(); ++r)
                 {
-                    for (long r = 0; r < output_tensor.nr(); ++r)
+                    for (long c = 0; c < output_tensor.nc(); ++c)
                     {
-                        for (long c = 0; c < output_tensor.nc(); ++c)
+                        const dlib::rgb_pixel truth_pixel = (*truth_matrix_ptr)(r, c);
+
+                        for (long k = 0; k < output_tensor.k(); k++)
                         {
-                            const_label_iterator truth_matrix_ptr = (truth + i);
-                            const dlib::rgb_pixel y = (*truth_matrix_ptr)(r, c);
+                            auto idx = tensor_index(output_tensor, i, r, c, k);
 
-                            const size_t idx = tensor_index(output_tensor, i, r, c, k);
-                            auto output = static_cast<unsigned char>(out_data[idx] * 256);
+                            auto truth_color = float(channel_from_index(truth_pixel, k)) / 256;
 
-                            auto truth_color = channel_from_index(y, k);
-
-                            auto diff = float(truth_color - output) / 256.0f;
-                            loss += 0.5 * scale * diff * diff;
-                            g[idx] = -scale * diff;
+                            auto error = truth_color - out_data[idx];// +average_color_from_index(k);
+                            loss += scale * error * error;
+                            g[idx] = -scale * error;
                         }
                     }
                 }
@@ -185,19 +251,19 @@ namespace dnn
     };
 
 
-    std::ostream& operator<<(std::ostream& out, const loss_avg_& item);
+    std::ostream& operator<<(std::ostream& out, const loss_pixel_& item);
     /*!
     print a string describing this layer.
     !*/
 
-    void to_xml(const loss_avg_& item, std::ostream& out);
+    void to_xml(const loss_pixel_& item, std::ostream& out);
     /*!
     This function is optional, but required if you want to print your networks with
     net_to_xml().  Therefore, to_xml() prints a layer as XML.
     !*/
 
-    void serialize(const loss_avg_& item, std::ostream& out);
-    void deserialize(loss_avg_& item, std::istream& in);
+    void serialize(const loss_pixel_& item, std::ostream& out);
+    void deserialize(loss_pixel_& item, std::istream& in);
     /*!
     provides serialization support
     !*/
@@ -207,5 +273,5 @@ namespace dnn
     // ends with an _ while the add_loss_layer template has the same name but without the
     // trailing _.
     template <typename SUBNET>
-    using loss_avg = dlib::add_loss_layer<loss_avg_, SUBNET>;
+    using loss_pixel = dlib::add_loss_layer<loss_pixel_, SUBNET>;
 }
