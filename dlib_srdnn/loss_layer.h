@@ -177,25 +177,18 @@ namespace dnn
             DLIB_CASSERT(output_tensor.nr() == grad.nr() &&
                 output_tensor.nc() == grad.nc());
 
-            for (long idx = 0; idx < output_tensor.num_samples(); ++idx)
-            {
-                const_label_iterator truth_matrix_ptr = (truth + idx);
-                DLIB_CASSERT((*truth_matrix_ptr).nr() == output_tensor.nr() &&
-                    (*truth_matrix_ptr).nc() == output_tensor.nc());
-            }
-
             // The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
-            const double scale = 1.0 / (output_tensor.num_samples() * output_tensor.nr() * output_tensor.nc() * output_tensor.k());
-            
+            const auto scale = 1.0 / (output_tensor.nr() * output_tensor.nc());
+
             double loss = 0;
 
-            float* g = grad.host();
-
-            const float* out_data = output_tensor.host();
+            auto g = grad.host();
+            auto out_data = output_tensor.host();
 
             for (long i = 0; i < output_tensor.num_samples(); ++i)
             {
                 const_label_iterator truth_matrix_ptr = (truth + i);
+                DLIB_CASSERT((*truth_matrix_ptr).nr() == output_tensor.nr() && (*truth_matrix_ptr).nc() == output_tensor.nc());
 
                 for (long r = 0; r < output_tensor.nr(); ++r)
                 {
@@ -207,11 +200,11 @@ namespace dnn
                         {
                             auto idx = tensor_index(output_tensor, i, r, c, k);
 
-                            auto truth_color = float(channel_from_index(truth_pixel, k)) / 256;
+                            auto truth_color = float(channel_from_index(truth_pixel, k)) / 256.0;
 
                             auto error = truth_color - out_data[idx];// +average_color_from_index(k);
                             loss += scale * error * error;
-                            g[idx] = -scale * error;
+                            g[idx] = -2 * scale * error;
                         }
                     }
                 }

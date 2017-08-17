@@ -10,7 +10,7 @@ using namespace dlib;
 
 namespace dnn
 {
-    #define SR_SCALE 1
+    #define SR_SCALE 2
 
     // output = 3 filters - one for each channel in pixel
     template<
@@ -141,7 +141,8 @@ namespace dnn
         block<64, 3,
         block<64, 3,
         block<64, 3,
-        SUBNET>>>;
+        block<64, 3,
+        SUBNET>>>>;
 
     // residual creates a network structure like this:
     /*
@@ -178,7 +179,7 @@ namespace dnn
         loss_pixel<
         output_block<
         residual<
-        con_block,
+        simple_con_block,
         input_block<scale>>>>;
 
     using sr_net = net_def<SR_SCALE>;

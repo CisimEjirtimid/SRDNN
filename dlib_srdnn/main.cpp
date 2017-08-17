@@ -3,7 +3,6 @@
 #include "input_parser.h"
 #include "dnn_utils.h"
 #include "dnn_setup.h"
-#include "loss_layer.h"
 
 using namespace dlib;
 using namespace std;
@@ -34,16 +33,17 @@ namespace
 
         auto compatible_rect = rectangle(images[0].nr() + images[0].nr() % SR_SCALE, images[0].nc() + images[0].nc() % SR_SCALE);
         images = utils::resize_dataset(images, compatible_rect);
-        auto downsampled = utils::resize_dataset(images, 1 / SR_SCALE);
+        auto downsampled = utils::resize_dataset(images, 1.0f / SR_SCALE);
 
         simple_net dnnet;
 
         dnn_trainer<simple_net> trainer(dnnet);
+        trainer.set_synchronization_file("sync_file", chrono::minutes(1));
+
         trainer.set_learning_rate(0.1);
         trainer.set_min_learning_rate(0.0001);
-        trainer.set_mini_batch_size(2);
-        trainer.set_iterations_without_progress_threshold(500);
-        trainer.set_synchronization_file("sync_file", chrono::minutes(1));
+        trainer.set_mini_batch_size(1);
+        trainer.set_iterations_without_progress_threshold(10000);
 
         trainer.be_verbose();
 
@@ -90,16 +90,16 @@ namespace
         {
             image_window original, net_output, difference;
 
-            matrix<rgb_pixel> resized(img.nr() * SR_SCALE, img.nc() * SR_SCALE);
-            resize_image(img, resized, interpolate_bilinear());
+            matrix<rgb_pixel> resized_img(img.nr() * SR_SCALE, img.nc() * SR_SCALE);
+            resize_image(img, resized_img, interpolate_bilinear());
 
-            original.set_image(resized);
+            original.set_image(resized_img);
             original.set_title("Original Image");
 
             net_output.set_image(res[0]);
             net_output.set_title("Evaluated Image");
 
-            difference.set_image(utils::difference(resized, res[0]));
+            difference.set_image(utils::difference(resized_img, res[0]));
             difference.set_title("Difference between images");
 
             original.show();
