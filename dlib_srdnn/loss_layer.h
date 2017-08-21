@@ -72,8 +72,8 @@ namespace dnn
     public:
 
         // In most cases training_label_type and output_label_type will be the same type.
-        typedef dlib::matrix<dlib::rgb_pixel> training_label_type;
-        typedef dlib::matrix<dlib::rgb_pixel>   output_label_type;
+        typedef dlib::matrix<float> training_label_type;
+        typedef dlib::matrix<float>   output_label_type;
 
         loss_pixel_(
         )
@@ -112,7 +112,7 @@ namespace dnn
             DLIB_CASSERT(sub.sample_expansion_factor() == 1);
 
             const dlib::tensor& output_tensor = sub.get_output();
-            DLIB_CASSERT(output_tensor.k() == 3);
+            //DLIB_CASSERT(output_tensor.k() == 3);
             DLIB_CASSERT(input_tensor.num_samples() == output_tensor.num_samples());
 
             auto out_data = output_tensor.host();
@@ -129,7 +129,7 @@ namespace dnn
                         {
                             auto idx = tensor_index(output_tensor, i, r, c, k);
 
-                            indexed_color_to_channel(network_out(r, c), clip_to_char(out_data[idx] * 256.0), k);
+                            network_out(r, c) = out_data[idx];
                         }
                     }
                 }
@@ -178,7 +178,7 @@ namespace dnn
                 output_tensor.nc() == grad.nc());
 
             // The loss we output is the average loss over the mini-batch, and also over each element of the matrix output.
-            const auto scale = 1.0 / (output_tensor.nr() * output_tensor.nc());
+            const auto scale = 1.0 / (output_tensor.nr() * output_tensor.nc() * output_tensor.num_samples());
 
             double loss = 0;
 
@@ -194,13 +194,12 @@ namespace dnn
                 {
                     for (long c = 0; c < output_tensor.nc(); ++c)
                     {
-                        const dlib::rgb_pixel truth_pixel = (*truth_matrix_ptr)(r, c);
+                        const float truth_pixel = (*truth_matrix_ptr)(r, c);
 
                         for (long k = 0; k < output_tensor.k(); k++)
                         {
                             auto idx = tensor_index(output_tensor, i, r, c, k);
-
-                            auto truth_color = float(channel_from_index(truth_pixel, k)) / 256.0;
+                            auto truth_color = truth_pixel;
 
                             auto error = truth_color - out_data[idx];// +average_color_from_index(k);
                             loss += scale * error * error;

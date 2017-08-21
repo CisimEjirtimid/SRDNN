@@ -19,18 +19,27 @@ namespace utils
         }
     }
 
-    std::vector<dlib::matrix<dlib::rgb_pixel>> load_dataset(std::string& dir)
+    std::vector<dlib::matrix<float>> load_dataset(std::string& dir)
     {
         auto img_list = get_image_list(dir);
 
-        std::vector<dlib::matrix<dlib::rgb_pixel>> images;
+        std::vector<dlib::matrix<float>> images;
 
         int count = 0;
         for (auto& i : img_list)
         {
             dlib::matrix<dlib::rgb_pixel> img;
             dlib::load_image(img, i);
-            images.push_back(img);
+            dlib::matrix<float> img_gray;
+            dlib::assign_image(img_gray, img);
+            
+            for (auto i = 0; i < img_gray.nr(); i++)
+                for (auto j = 0; j < img_gray.nc(); j++)
+                    img_gray(i, j) /= 255.0;
+
+            //img_gray *= 1/255.0;
+
+            images.push_back(img_gray);
 
             if (++count % 100 == 0)
                 std::cout << count << " images loaded." << std::endl;
@@ -39,13 +48,13 @@ namespace utils
         return images;
     }
 
-    std::vector<dlib::matrix<dlib::rgb_pixel>> resize_dataset(std::vector<dlib::matrix<dlib::rgb_pixel>>& dataset, double scale_factor)
+    std::vector<dlib::matrix<float>> resize_dataset(std::vector<dlib::matrix<float>>& dataset, double scale_factor)
     {
-        std::vector<dlib::matrix<dlib::rgb_pixel>> upsampled;
+        std::vector<dlib::matrix<float>> upsampled;
 
         for (auto& img : dataset)
         {
-            dlib::matrix<dlib::rgb_pixel> upsample(img.nr() * scale_factor, img.nc() * scale_factor);
+            dlib::matrix<float> upsample(img.nr() * scale_factor, img.nc() * scale_factor);
             dlib::resize_image(img, upsample, dlib::interpolate_bilinear());
             upsampled.push_back(upsample);
         }
@@ -53,15 +62,15 @@ namespace utils
         return upsampled;
     }
 
-    std::vector<dlib::matrix<dlib::rgb_pixel>> resize_dataset(std::vector<dlib::matrix<dlib::rgb_pixel>>& dataset, dlib::rectangle new_size)
+    std::vector<dlib::matrix<float>> resize_dataset(std::vector<dlib::matrix<float>>& dataset, dlib::rectangle new_size)
     {
-        std::vector<dlib::matrix<dlib::rgb_pixel>> upsampled;
+        std::vector<dlib::matrix<float>> upsampled;
 
         int count = 0;
 
         for (auto& img : dataset)
         {
-            dlib::matrix<dlib::rgb_pixel> upsample(new_size.height(), new_size.width());
+            dlib::matrix<float> upsample(new_size.height(), new_size.width());
             dlib::resize_image(img, upsample, dlib::interpolate_bilinear());
             upsampled.push_back(upsample);
             
@@ -72,6 +81,7 @@ namespace utils
         return upsampled;
     }
 
+    /*
     dlib::matrix<dlib::rgb_pixel> difference(const dlib::matrix<dlib::rgb_pixel>& first, const dlib::matrix<dlib::rgb_pixel>& second)
     {
         DLIB_CASSERT(first.nr() == second.nr());
@@ -94,5 +104,6 @@ namespace utils
 
         return res;
     }
+    */
 }
 }

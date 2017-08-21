@@ -8,8 +8,8 @@ using namespace dlib;
 using namespace std;
 using namespace dnn;
 
-#include <dlib/gui_core.h>
-#include <dlib/gui_widgets.h>
+//#include <dlib/gui_core.h>
+//#include <dlib/gui_widgets.h>
 
 namespace
 {
@@ -31,9 +31,12 @@ namespace
 
         auto images = utils::load_dataset(str);
 
-        auto compatible_rect = rectangle(images[0].nr() + images[0].nr() % SR_SCALE, images[0].nc() + images[0].nc() % SR_SCALE);
+        auto compatible_rect = rectangle(images[0].nc() + images[0].nc() % SR_SCALE, images[0].nr() + images[0].nr() % SR_SCALE);
         images = utils::resize_dataset(images, compatible_rect);
         auto downsampled = utils::resize_dataset(images, 1.0f / SR_SCALE);
+
+        save_jpeg(downsampled[0], "downsampled.jpg");
+        save_jpeg(images[0], "original.jpg");
 
         simple_net dnnet;
 
@@ -41,9 +44,9 @@ namespace
         trainer.set_synchronization_file("sync_file", chrono::minutes(1));
 
         trainer.set_learning_rate(0.1);
-        trainer.set_min_learning_rate(0.0001);
+        trainer.set_min_learning_rate(0.00001);
         trainer.set_mini_batch_size(1);
-        trainer.set_iterations_without_progress_threshold(10000);
+        trainer.set_iterations_without_progress_threshold(2000);
 
         trainer.be_verbose();
 
@@ -88,6 +91,12 @@ namespace
 
         if (args["show"])
         {
+            save_jpeg(res[0], "output.jpg");
+        }
+
+        /*
+        if (args["show"])
+        {
             image_window original, net_output, difference;
 
             matrix<rgb_pixel> resized_img(img.nr() * SR_SCALE, img.nc() * SR_SCALE);
@@ -109,10 +118,11 @@ namespace
             int showing;
             cin >> showing;
         }
+        */
     }
 }
 
-void main(int argc, char** argv) try
+int main(int argc, char** argv) try
 {
     auto args = dnn::input::parser.parse(argc, argv);
 
@@ -125,10 +135,10 @@ void main(int argc, char** argv) try
     if (args["eval"])
         evaluate(args);
 
-    int end;
-    cin >> end;
+    return 0;
 }
 catch (exception& e)
 {
     cerr << e.what() << endl;
+    return 1;
 }
