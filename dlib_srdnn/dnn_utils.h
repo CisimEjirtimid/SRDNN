@@ -11,6 +11,8 @@ namespace utils
 
     std::vector<dlib::matrix<float>> resize_dataset(std::vector<dlib::matrix<float>>& dataset, dlib::rectangle new_size);
 
+    void normImage(dlib::matrix<float>& src, float scale);
+
 //    dlib::matrix<dlib::rgb_pixel> difference(const dlib::matrix<dlib::rgb_pixel>& first, const dlib::matrix<dlib::rgb_pixel>& second);
 }
 }

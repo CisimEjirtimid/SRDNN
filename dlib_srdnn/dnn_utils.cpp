@@ -32,10 +32,8 @@ namespace utils
             dlib::load_image(img, i);
             dlib::matrix<float> img_gray;
             dlib::assign_image(img_gray, img);
-            
-            for (auto i = 0; i < img_gray.nr(); i++)
-                for (auto j = 0; j < img_gray.nc(); j++)
-                    img_gray(i, j) /= 255.0;
+
+            normImage(img_gray, 1.0/255.0);
 
             //img_gray *= 1/255.0;
 
@@ -79,6 +77,14 @@ namespace utils
         }
 
         return upsampled;
+    }
+    
+
+    void normImage(dlib::matrix<float>& img_gray, float scale)
+    {
+            for (auto i = 0; i < img_gray.nr(); i++)
+                for (auto j = 0; j < img_gray.nc(); j++)
+                    img_gray(i, j) *= scale;
     }
 
     /*

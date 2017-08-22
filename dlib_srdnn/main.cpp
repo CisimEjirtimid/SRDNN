@@ -35,8 +35,8 @@ namespace
         images = utils::resize_dataset(images, compatible_rect);
         auto downsampled = utils::resize_dataset(images, 1.0f / SR_SCALE);
 
-        save_jpeg(downsampled[0], "downsampled.jpg");
-        save_jpeg(images[0], "original.jpg");
+        //save_jpeg(downsampled[0], "downsampled.jpg");
+        //save_jpeg(images[0], "original.jpg");
 
         simple_net dnnet;
 
@@ -45,8 +45,8 @@ namespace
 
         trainer.set_learning_rate(0.1);
         trainer.set_min_learning_rate(0.00001);
-        trainer.set_mini_batch_size(1);
-        trainer.set_iterations_without_progress_threshold(2000);
+        trainer.set_mini_batch_size(10);
+        trainer.set_iterations_without_progress_threshold(10000);
 
         trainer.be_verbose();
 
@@ -80,18 +80,25 @@ namespace
         matrix<rgb_pixel> img;
         string str(args["input"].as<string>());
         load_image(img, str);
+        matrix<float> img_gray;
+        dlib::assign_image(img_gray, img);
+
+        utils::normImage(img_gray, 1.0/255.0);
 
         simple_net dnnet;
         deserialize(args["net-input"].as<string>()) >> dnnet;
 
-        std::vector<matrix<rgb_pixel>> eval;
-        eval.push_back(img);
+        std::vector<matrix<float>> eval;
+        eval.push_back(img_gray);
 
         auto res = dnnet(eval);
 
         if (args["show"])
         {
+            utils::normImage(res[0], 255.0);
             save_jpeg(res[0], "output.jpg");
+            utils::normImage(eval[0], 255.0);
+            save_jpeg(eval[0], "eval.jpg");
         }
 
         /*

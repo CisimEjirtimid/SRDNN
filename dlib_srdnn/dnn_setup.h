@@ -138,11 +138,12 @@ namespace dnn
         typename SUBNET
     >
     using simple_con_block =
+        output_block<
         block<64, 3,
         block<64, 3,
         block<64, 3,
         block<64, 3,
-        SUBNET>>>>;
+        SUBNET>>>>>;
 
     // residual creates a network structure like this:
     /*
