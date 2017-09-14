@@ -8,8 +8,28 @@ using namespace dlib;
 using namespace std;
 using namespace dnn;
 
-//#include <dlib/gui_core.h>
-//#include <dlib/gui_widgets.h>
+#include <dlib/gui_core.h>
+#include <dlib/gui_widgets.h>
+
+/*
+    main.cpp file for dlib_srdnn project
+
+    Usage: try dlib_srdnn --help for it
+
+    Supported super-resolution scales: theoretically infinite
+    Supported pixel types: rgb_pixel and float
+
+    Setup:
+        - Current super-resolution scale: 2
+        - Current pixel type: rgb_pixel
+            - Number of channels: 3
+
+        - This parameters can be changed in dnn_common.h
+
+    For usage with some other network:
+        - Currently the simple training and evaluation framework wraps around the SRDNN,
+          but could be used with any network architecture, just by changing the network in the dnn_setup.h file
+*/
 
 namespace
 {
@@ -38,15 +58,15 @@ namespace
         //save_jpeg(downsampled[0], "downsampled.jpg");
         //save_jpeg(images[0], "original.jpg");
 
-        simple_net dnnet;
+        sr_net dnnet;
 
-        dnn_trainer<simple_net> trainer(dnnet);
+        dnn_trainer<sr_net> trainer(dnnet);
         trainer.set_synchronization_file("sync_file", chrono::minutes(1));
 
-        trainer.set_learning_rate(0.1);
+        trainer.set_learning_rate(0.01);
         trainer.set_min_learning_rate(0.00001);
-        trainer.set_mini_batch_size(10);
-        trainer.set_iterations_without_progress_threshold(10000);
+        trainer.set_mini_batch_size(1);
+        trainer.set_iterations_without_progress_threshold(2000);
 
         trainer.be_verbose();
 
@@ -80,28 +100,28 @@ namespace
         matrix<rgb_pixel> img;
         string str(args["input"].as<string>());
         load_image(img, str);
-        matrix<float> img_gray;
+
+        matrix<pixel_type> img_gray;
         dlib::assign_image(img_gray, img);
+        utils::norm_image(img_gray, 1.0/255.0); // if this is done in loss layer, then it's unneeded here
 
-        utils::normImage(img_gray, 1.0/255.0);
-
-        simple_net dnnet;
+        sr_net dnnet;
         deserialize(args["net-input"].as<string>()) >> dnnet;
 
-        std::vector<matrix<float>> eval;
+        std::vector<matrix<pixel_type>> eval;
         eval.push_back(img_gray);
 
         auto res = dnnet(eval);
 
-        if (args["show"])
+        if (args["output"])
         {
-            utils::normImage(res[0], 255.0);
+            utils::norm_image(res[0], 255.0);
             save_jpeg(res[0], "output.jpg");
-            utils::normImage(eval[0], 255.0);
+            utils::norm_image(eval[0], 255.0);
             save_jpeg(eval[0], "eval.jpg");
         }
 
-        /*
+        
         if (args["show"])
         {
             image_window original, net_output, difference;
@@ -125,7 +145,7 @@ namespace
             int showing;
             cin >> showing;
         }
-        */
+        
     }
 }
 

@@ -90,6 +90,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dnn_common.h" />
     <ClInclude Include="dnn_setup.h" />
     <ClInclude Include="dnn_utils.h" />
     <ClInclude Include="input_parser.h" />

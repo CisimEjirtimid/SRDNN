@@ -4,25 +4,24 @@
 #include <iostream>
 #include <dlib/data_io.h>
 #include "loss_layer.h"
+#include "dnn_common.h"
 
 using namespace std;
 using namespace dlib;
 
 namespace dnn
 {
-    #define SR_SCALE 2
-
     // output = 3 filters - one for each channel in pixel
     template<
         typename SUBNET
     >
-    using output_block = relu<con<1, 1, 1, 1, 1, SUBNET>>;
+    using adapter_block = relu<con<PIXEL_CHANNELS, 1, 1, 1, 1, SUBNET>>;
 
     // input = bilinear upsample of the input image
     template<
         int scale
     >
-    using input_block = upsample<scale, dlib::input<matrix<float>>>;
+    using input_block = upsample<scale, dlib::input<matrix<pixel_type>>>;
 
     namespace batch_normalised /* unused */
     {
@@ -97,7 +96,7 @@ namespace dnn
         using bn_net_def =
             loss_pixel<
             BN<
-            output_block<
+            adapter_block<
             bn_residual<BN,
             bn_con_block,
             input_block<scale>>>>>;
@@ -118,7 +117,8 @@ namespace dnn
     template <
         typename SUBNET
     >
-    using con_block =
+        using con_block =
+        adapter_block<
         block<64, 3,
         block<64, 3,
         block<64, 3,
@@ -129,16 +129,13 @@ namespace dnn
         block<64, 3,
         block<64, 3,
         block<64, 3,
-        block<64, 3,
-        block<64, 3,
-        block<64, 3,
-        SUBNET>>>>>>>>>>>>>;
+        SUBNET>>>>>>>>>>>;
 
     template <
         typename SUBNET
     >
     using simple_con_block =
-        output_block<
+        adapter_block<
         block<64, 3,
         block<64, 3,
         block<64, 3,
@@ -167,14 +164,18 @@ namespace dnn
         int scale
     >
     using net_def =
-        loss_pixel<output_block<residual<con_block, input_block<scale>>>>;
+        loss_pixel<
+        adapter_block<
+        residual<
+        con_block,
+        input_block<scale>>>>;
 
     template<
         int scale
     >
     using simple_net_def =
         loss_pixel<
-        output_block<
+        adapter_block<
         residual<
         simple_con_block,
         input_block<scale>>>>;

@@ -1,8 +1,9 @@
 #pragma once
 #include <vector>
-#include <dlib/pixel.h>
 #include <dlib/matrix/matrix.h>
 #include <dlib/dnn/loss.h>
+
+#include "dnn_common.h"
 
 namespace dnn
 {
@@ -44,6 +45,7 @@ namespace dnn
             case 2:
                 return pix.blue;
             default:
+                std::cout << "Invalid pixel index" << std::endl;
                 return 0;
             }
         }
@@ -62,8 +64,48 @@ namespace dnn
                 pix.blue = color;
                 break;
             default:
+                std::cout << "Invalid pixel index" << std::endl;
                 break;
             }
+        }
+
+        template<typename pixel_T>
+        float truth_color(pixel_T pix, int idx)
+        {
+            std::cout << "Unknown image pixel format" << std::endl;
+            return std::numeric_limits<float>::max();
+        }
+
+        template<>
+        float truth_color<dlib::rgb_pixel> (dlib::rgb_pixel t, int idx)
+        {
+            return static_cast<float>(channel_from_index(t, idx));
+        }
+
+        template<>
+        float truth_color<float>(float t, int idx)
+        {
+            DLIB_ASSERT(idx == 0);
+            return t;
+        }
+
+        template<typename pixel_T>
+        void output_color(pixel_T& pix, unsigned char color, int idx)
+        {
+            std::cout << "Unknown image pixel format" << std::endl;
+        }
+
+        template<>
+        void output_color<dlib::rgb_pixel>(dlib::rgb_pixel& pix, unsigned char color, int idx)
+        {
+            indexed_color_to_channel(pix, color, idx);
+        }
+
+        template<>
+        void output_color<float>(float& pix, unsigned char color, int idx)
+        {
+            DLIB_ASSERT(idx == 0);
+            pix = color;
         }
     }
 
@@ -72,8 +114,8 @@ namespace dnn
     public:
 
         // In most cases training_label_type and output_label_type will be the same type.
-        typedef dlib::matrix<float> training_label_type;
-        typedef dlib::matrix<float>   output_label_type;
+        typedef dlib::matrix<pixel_type> training_label_type;
+        typedef dlib::matrix<pixel_type>   output_label_type;
 
         loss_pixel_(
         )
@@ -128,8 +170,7 @@ namespace dnn
                         for (long k = 0; k < output_tensor.k(); ++k)
                         {
                             auto idx = tensor_index(output_tensor, i, r, c, k);
-
-                            network_out(r, c) = out_data[idx];
+                            output_color(network_out(r, c), clip_to_char(out_data[idx] * 255.0), k);
                         }
                     }
                 }
@@ -194,14 +235,15 @@ namespace dnn
                 {
                     for (long c = 0; c < output_tensor.nc(); ++c)
                     {
-                        const float truth_pixel = (*truth_matrix_ptr)(r, c);
+                        const pixel_type truth_pixel = (*truth_matrix_ptr)(r, c);
 
                         for (long k = 0; k < output_tensor.k(); k++)
                         {
                             auto idx = tensor_index(output_tensor, i, r, c, k);
-                            auto truth_color = truth_pixel;
 
-                            auto error = truth_color - out_data[idx];// +average_color_from_index(k);
+                            auto ground_truth_color = truth_color(truth_pixel, idx);
+
+                            auto error = ground_truth_color - out_data[idx];
                             loss += scale * error * error;
                             g[idx] = -2 * scale * error;
                         }
