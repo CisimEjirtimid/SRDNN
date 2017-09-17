@@ -65,7 +65,7 @@ namespace utils
 
             if (std::is_same<pixel_type, rgb_pixel>())
             {
-                norm_image(img, norm_factor);
+                //norm_image(img, norm_factor); rgb values are chars, not floats, so with norming the information is lost
                 images.push_back(img);
             }
             else if (std::is_same<pixel_type, float>())

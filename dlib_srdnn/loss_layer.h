@@ -241,7 +241,7 @@ namespace dnn
                         {
                             auto idx = tensor_index(output_tensor, i, r, c, k);
 
-                            auto ground_truth_color = truth_color(truth_pixel, k);
+                            auto ground_truth_color = static_cast<float>(truth_color(truth_pixel, k))/255.0;
 
                             auto error = ground_truth_color - out_data[idx];
                             loss += scale * error * error;

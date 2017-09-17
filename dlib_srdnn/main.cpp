@@ -102,8 +102,10 @@ namespace
         load_image(img, str);
 
         matrix<pixel_type> img_gray;
-        dlib::assign_image(img_gray, img);
-        utils::norm_image(img_gray, 1.0/255.0); // if this is done in loss layer, then it's unneeded here
+        assign_image(img_gray, img);
+
+        if (is_same<pixel_type, float>())
+            utils::norm_image(img_gray, 1.0/255.0); // not needed if pixel_type is rgb_pixel
 
         sr_net dnnet;
         deserialize(args["net-input"].as<string>()) >> dnnet;
@@ -115,13 +117,17 @@ namespace
 
         if (args["output"])
         {
-            utils::norm_image(res[0], 255.0);
-            save_jpeg(res[0], "output.jpg");
-            utils::norm_image(eval[0], 255.0);
-            save_jpeg(eval[0], "eval.jpg");
+            if (is_same<pixel_type, float>())
+            {
+                utils::norm_image(res[0], 255.0);
+                utils::norm_image(eval[0], 255.0);
+            }
+
+            save_jpeg(res[0], args["output"].as<string>() + "_output.jpg");
+            save_jpeg(eval[0], args["output"].as<string>() +"_eval.jpg");
         }
 
-        
+#ifdef WIN32
         if (args["show"])
         {
             image_window original, net_output, difference;
@@ -145,7 +151,7 @@ namespace
             int showing;
             cin >> showing;
         }
-        
+#endif
     }
 }
 
