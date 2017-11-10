@@ -85,11 +85,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="compute_vifp.cpp" />
     <ClCompile Include="dnn_utils.cpp" />
     <ClCompile Include="loss_layer.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="compute_vifp.h" />
     <ClInclude Include="dnn_common.h" />
     <ClInclude Include="dnn_setup.h" />
     <ClInclude Include="dnn_utils.h" />
