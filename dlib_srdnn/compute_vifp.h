@@ -2,7 +2,10 @@
 #include <dlib/pixel.h>
 #include <dlib/matrix/matrix.h>
 #include <dlib/matrix/matrix_utilities.h>
+#include "dnn_common.h"
 
+namespace dnn
+{
 namespace quality
 {
     namespace matrix_utility
@@ -18,7 +21,7 @@ namespace quality
 
             const_ret_type apply(long r, long c) const
             {
-                return this->m1(r, c)/this->m2(r, c);
+                return this->m1(r, c) / this->m2(r, c);
             }
         };
 
@@ -26,7 +29,7 @@ namespace quality
             typename EXP1,
             typename EXP2
         >
-        dlib::matrix_op<op_pointwise_divide<EXP1, EXP2> > pointwise_divide(
+            dlib::matrix_op<op_pointwise_divide<EXP1, EXP2> > pointwise_divide(
                 const dlib::matrix_exp<EXP1>& a,
                 const dlib::matrix_exp<EXP2>& b
             )
@@ -48,5 +51,6 @@ namespace quality
         }
     }
 
-    double vifp(dlib::matrix<dlib::rgb_pixel> ref_image, dlib::matrix<dlib::rgb_pixel> dist_image);
+    double vifp(const dlib::matrix<pixel_type>& original, const dlib::matrix<pixel_type>& processed);
+}
 }

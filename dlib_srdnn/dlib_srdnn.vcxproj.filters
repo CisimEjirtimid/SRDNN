@@ -27,6 +27,9 @@
     <ClCompile Include="compute_vifp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="trainer_args_parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dnn_utils.h">
@@ -45,6 +48,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="compute_vifp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trainer_args_parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

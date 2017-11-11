@@ -129,6 +129,12 @@ namespace utils
                 norm_pixel(img_gray(i, j), scale);
     }
 
+    void norm_dataset(std::vector<dlib::matrix<pixel_type>>& src_dataset, float scale)
+    {
+        for (auto i = 0; i < src_dataset.size(); i++)
+            norm_image(src_dataset[i], scale);
+    }
+
     dlib::matrix<pixel_type> difference(const dlib::matrix<pixel_type>& first, const dlib::matrix<pixel_type>& second)
     {
         DLIB_CASSERT(first.nr() == second.nr());
@@ -148,6 +154,15 @@ namespace utils
         }
 
         return res;
+    }
+
+    float square_difference(const dlib::matrix<pixel_type>& first, const dlib::matrix<pixel_type>& second)
+    {
+        dlib::matrix<float> diff_gr;
+        auto diff = difference(first, second);
+        assign_image(diff_gr, diff);
+        auto square_diff = pointwise_multiply(diff_gr, diff_gr);
+        return sqrt(float(sum(square_diff)));
     }
 }
 }

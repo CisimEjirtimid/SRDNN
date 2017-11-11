@@ -2,7 +2,8 @@
 
 #include "input_parser.h"
 #include "dnn_utils.h"
-#include "dnn_setup.h"
+#include "trainer_args_parser.h"
+#include "compute_vifp.h"
 
 using namespace dlib;
 using namespace std;
@@ -59,17 +60,12 @@ namespace
         //save_jpeg(images[0], "original.jpg");
 
         sr_net dnnet;
-
         dnn_trainer<sr_net> trainer(dnnet);
-        trainer.set_synchronization_file("sync_file", chrono::minutes(1));
-
-        trainer.set_learning_rate(0.01);
-        trainer.set_min_learning_rate(0.00001);
-        trainer.set_mini_batch_size(1);
-        trainer.set_iterations_without_progress_threshold(2000);
+        args::parser args_parser(trainer);
+        if (args["trainer_args"])
+            args_parser.parse(args["trainer_args"].as<string>());
 
         trainer.be_verbose();
-
         trainer.train(downsampled, images);
 
         dnnet.clean();
@@ -79,6 +75,52 @@ namespace
 
         if (args["xml"])
             net_to_xml(dnnet, args["xml"].as<string>());
+    }
+
+    void validate(argagg::parser_results args)
+    {
+        if (!bool(args["input"]))
+        {
+            cerr << "Invalid usage! Input is missing!" << endl;
+            cerr << dnn::input::parser;
+            return;
+        }
+
+        if (!bool(args["net-input"]))
+        {
+            cerr << "Invalid usage! Network input is missing!" << endl;
+            cerr << dnn::input::parser;
+            return;
+        }
+
+        string str(args["input"].as<string>());
+
+        auto images = utils::load_dataset(str);
+
+        auto compatible_rect = rectangle(images[0].nc() + images[0].nc() % SR_SCALE, images[0].nr() + images[0].nr() % SR_SCALE);
+        images = utils::resize_dataset(images, compatible_rect);
+        auto valid = utils::resize_dataset(images, 1.0f / SR_SCALE);
+
+        sr_net dnnet;
+        deserialize(args["net-input"].as<string>()) >> dnnet;
+
+        if (is_same<pixel_type, float>())
+            utils::norm_dataset(valid, 1.0 / 255.0);
+
+        auto res = dnnet.process_batch(valid, 1);
+
+        if (is_same<pixel_type, float>())
+            utils::norm_dataset(res, 255.0);
+
+        float error = 0.0f;
+        for (auto i = 0; i < images.size(); i++)
+        {
+            error += utils::square_difference(images[i], res[i]);
+        }
+
+        error /= images[0].nr() * images[0].nc() * images.size();
+
+        cout << "The average pixel squared error on the whole validation set is: " << error << endl;
     }
 
     void evaluate(argagg::parser_results args)
@@ -103,17 +145,16 @@ namespace
 
         matrix<pixel_type> img_gray;
         assign_image(img_gray, img);
-
         if (is_same<pixel_type, float>())
-            utils::norm_image(img_gray, 1.0/255.0); // not needed if pixel_type is rgb_pixel
-
-        sr_net dnnet;
-        deserialize(args["net-input"].as<string>()) >> dnnet;
+            utils::norm_image(img_gray, 1.0 / 255.0); // not needed if pixel_type is rgb_pixel
 
         std::vector<matrix<pixel_type>> eval;
         eval.push_back(img_gray);
 
-        auto res = dnnet(eval);
+        sr_net dnnet;
+        deserialize(args["net-input"].as<string>()) >> dnnet;
+
+        auto res = dnnet.process_batch(eval, 1);
 
         if (args["output"])
         {
@@ -127,6 +168,9 @@ namespace
             save_jpeg(eval[0], args["output"].as<string>() +"_eval.jpg");
         }
 
+        //auto vifp_grade = quality::vifp(compatible_image, res[0]);
+        //cout << "The VIFP index of evaluated image is: " << vifp_grade << endl;
+
 #ifdef WIN32
         if (args["show"])
         {
@@ -139,7 +183,7 @@ namespace
             original.set_title("Original Image");
 
             net_output.set_image(res[0]);
-            net_output.set_title("Evaluated Image");
+            net_output.set_title("Evaluated Image");//". VIFP index of the image: " + to_string(vifp_grade));
 
             difference.set_image(utils::difference(resized_img, res[0]));
             difference.set_title("Difference between images");
@@ -164,6 +208,9 @@ int main(int argc, char** argv) try
 
     if (args["train"])
         training(args);
+
+    if (args["valid"])
+        validate(args);
 
     if (args["eval"])
         evaluate(args);

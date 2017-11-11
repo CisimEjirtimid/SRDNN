@@ -89,6 +89,7 @@
     <ClCompile Include="dnn_utils.cpp" />
     <ClCompile Include="loss_layer.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="trainer_args_parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="compute_vifp.h" />
@@ -97,6 +98,7 @@
     <ClInclude Include="dnn_utils.h" />
     <ClInclude Include="input_parser.h" />
     <ClInclude Include="loss_layer.h" />
+    <ClInclude Include="trainer_args_parser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

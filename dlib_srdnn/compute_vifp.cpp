@@ -7,6 +7,8 @@
 
 using namespace dlib;
 
+namespace dnn
+{
 namespace quality
 {
     using namespace matrix_utility;
@@ -155,8 +157,23 @@ namespace quality
         }
     }
 
-    double vifp(const matrix<float>& original, const matrix<float>& processed)
+    double vifp(const matrix<pixel_type>& original, const matrix<pixel_type>& processed)
     {
+        matrix<float> orig, proc;
+
+        assign_image(orig, original);
+
+        if (original.size() != processed.size())
+        {
+            matrix<pixel_type> proc_resized(original.nr(), original.nc());
+            resize_image(processed, proc_resized, interpolate_quadratic());
+            assign_image(proc, proc_resized);
+        }
+        else
+        {
+            assign_image(proc, processed);
+        }
+
         double num = 0.0;
         double den = 0.0;
 
@@ -173,8 +190,8 @@ namespace quality
             int N = (2 << (NLEVS - scale - 1)) + 1;
 
             if (scale == 0) {
-                ref[scale] = original;
-                dist[scale] = processed;
+                ref[scale] = orig;
+                dist[scale] = proc;
             }
             else {
                 // ref=filter2(win,ref,'valid');
@@ -199,4 +216,5 @@ namespace quality
 
         return num / den;
     }
+}
 }
