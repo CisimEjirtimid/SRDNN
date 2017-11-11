@@ -7,28 +7,34 @@ namespace dnn
 namespace input
 {
     argagg::parser parser {{
-        { "help",{ "-h", "--help" },
-        "Shows this help message", 0 },
+        { "help", { "-h", "--help" },
+        "Shows the help message", 0 },
 
-        { "train",{ "-t", "--train" },
+        { "train", { "-t", "--train" },
         "Begin neural network training", 0 },
 
-        { "eval",{ "-e", "--eval" },
+        { "trainer-arguments", { "-a", "--trainer-args" },
+        "Arguments for the DNN trainer", 1 },
+
+        { "valid", { "-v", "--valid" },
+        "Validation testing trained network, with provided validation dataset", 0 },
+
+        { "eval", { "-e", "--eval" },
         "Evaluate trained network", 0 },
 
-        { "input",{ "-i", "--input" },
+        { "input", { "-i", "--input" },
         "Input - dataset for training, or image for evaluation process", 1 },
 
-        { "net-input",{ "-n", "--net-input" },
-        "Saved network params input for evaluation process", 1 },
+        { "net-input", { "-n", "--net-input" },
+        "Saved network params input for validation & evaluation process", 1 },
 
-        { "output",{ "-o", "--output" },
+        { "output", { "-o", "--output" },
         "Output path - for saving trained network, or evaluated image", 1 },
 
-        { "xml",{ "-x", "--xml" },
+        { "xml", { "-x", "--xml" },
         "Output path for saving trained network as XML", 1 },
 
-        { "show",{ "-s", "--show" },
+        { "show", { "-s", "--show" },
         "Show the results of the evaluation", 0 },
     }};
 }
