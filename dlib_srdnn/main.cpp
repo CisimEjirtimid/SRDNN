@@ -143,13 +143,13 @@ namespace
         string str(args["input"].as<string>());
         load_image(img, str);
 
-        matrix<pixel_type> img_gray;
-        assign_image(img_gray, img);
+        matrix<pixel_type> img_grey;
+        assign_image(img_grey, img);
         if (is_same<pixel_type, float>())
-            utils::norm_image(img_gray, 1.0 / 255.0); // not needed if pixel_type is rgb_pixel
+            utils::norm_image(img_grey, 1.0 / 255.0); // not needed if pixel_type is rgb_pixel
 
         std::vector<matrix<pixel_type>> eval;
-        eval.push_back(img_gray);
+        eval.push_back(img_grey);
 
         sr_net dnnet;
         deserialize(args["net-input"].as<string>()) >> dnnet;
@@ -168,8 +168,8 @@ namespace
             save_jpeg(eval[0], args["output"].as<string>() +"_eval.jpg");
         }
 
-        //auto vifp_grade = quality::vifp(compatible_image, res[0]);
-        //cout << "The VIFP index of evaluated image is: " << vifp_grade << endl;
+        auto vifp_grade = quality::vifp(img_grey, res[0]);
+        cout << "The VIFP index of evaluated image is: " << vifp_grade << endl;
 
 #ifdef WIN32
         if (args["show"])
@@ -183,7 +183,7 @@ namespace
             original.set_title("Original Image");
 
             net_output.set_image(res[0]);
-            net_output.set_title("Evaluated Image");//". VIFP index of the image: " + to_string(vifp_grade));
+            net_output.set_title("Evaluated Image. VIFP index of the image: " + to_string(vifp_grade));
 
             difference.set_image(utils::difference(resized_img, res[0]));
             difference.set_title("Difference between images");

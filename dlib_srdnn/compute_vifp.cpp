@@ -33,8 +33,8 @@ namespace quality
             void threshold_binary(matrix<float>& mat, float thresh)
             {
                 matrix<float> tmp(mat.nr(), mat.nc());
-                threshold_image(mat, tmp, 0.0f);
-                tmp /= std::numeric_limits<float>::max();
+                threshold_image(mat, tmp, thresh);
+                tmp /= 255.0;
                 mat = tmp;
             }
 
@@ -147,12 +147,12 @@ namespace quality
             g = pointwise_multiply(g, sigma1_sq);
             tmp = pointwise_divide(g, sv_sq);
             tmp += 1.0f;
-            log10(tmp);
+            tmp = log10(tmp);
             num += sum(tmp);
 
             // den=den+sum(sum(log10(1+sigma1_sq./sigma_nsq)));
             tmp = 1.0f + sigma1_sq / SIGMA_NSQ;
-            log10(tmp);
+            tmp = log10(tmp);
             den += sum(tmp);
         }
     }
