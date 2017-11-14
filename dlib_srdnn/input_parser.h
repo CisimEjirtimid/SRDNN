@@ -13,8 +13,8 @@ namespace input
         { "train", { "-t", "--train" },
         "Begin neural network training", 0 },
 
-        { "trainer-arguments", { "-a", "--trainer-args" },
-        "Arguments for the DNN trainer", 1 },
+        { "trainer-arguments", { "-a", "--trainer-arguments" },
+        "Arguments for the DNN trainer, passed in <parameter_1>=<value_1>:<parameter_2>:<value_2> format", 1 },
 
         { "valid", { "-v", "--valid" },
         "Validation testing trained network, with provided validation dataset", 0 },

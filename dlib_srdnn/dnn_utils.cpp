@@ -60,7 +60,7 @@ namespace utils
         auto count = 0;
         for (auto& i : img_list)
         {
-            dlib::matrix<dlib::rgb_pixel> img;
+            dlib::matrix<pixel_type> img;
             dlib::load_image(img, i);
 
             if (std::is_same<pixel_type, rgb_pixel>())

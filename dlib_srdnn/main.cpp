@@ -24,8 +24,10 @@ using namespace dnn;
         - Current super-resolution scale: 2
         - Current pixel type: rgb_pixel
             - Number of channels: 3
+            - This is defined by preprocessor directive '_RGB'
 
-        - This parameters can be changed in dnn_common.h
+        - Super-resolution scale can be changed in header file dnn_common.h
+        - Pixel type can be changed by changing preprocessor directive from '_RGB' to '_GREY'
 
     For usage with some other network:
         - Currently the simple training and evaluation framework wraps around the SRDNN,
@@ -56,14 +58,11 @@ namespace
         images = utils::resize_dataset(images, compatible_rect);
         auto downsampled = utils::resize_dataset(images, 1.0f / SR_SCALE);
 
-        //save_jpeg(downsampled[0], "downsampled.jpg");
-        //save_jpeg(images[0], "original.jpg");
-
         sr_net dnnet;
         dnn_trainer<sr_net> trainer(dnnet);
         args::parser args_parser(trainer);
-        if (args["trainer_args"])
-            args_parser.parse(args["trainer_args"].as<string>());
+        if (args["trainer-arguments"])
+            args_parser.parse(args["trainer-arguments"].as<string>());
 
         trainer.be_verbose();
         trainer.train(downsampled, images);
@@ -176,7 +175,7 @@ namespace
         {
             image_window original, net_output, difference;
 
-            matrix<rgb_pixel> resized_img(img.nr() * SR_SCALE, img.nc() * SR_SCALE);
+            matrix<pixel_type> resized_img(img.nr() * SR_SCALE, img.nc() * SR_SCALE);
             resize_image(img, resized_img, interpolate_bilinear());
 
             original.set_image(resized_img);

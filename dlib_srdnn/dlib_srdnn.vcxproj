@@ -54,7 +54,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_CONSOLE;DLIB_DISABLE_ASSERTS;DLIB_JPEG_SUPPORT;DLIB_USE_CUDA;_DEBUG;%(PreprocessorDefinitions);DLIB_JPEG_SUPPORT;DLIB_JPEG_SUPPORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_RGB;_CONSOLE;DLIB_DISABLE_ASSERTS;DLIB_JPEG_SUPPORT;DLIB_USE_CUDA;_DEBUG;%(PreprocessorDefinitions);DLIB_JPEG_SUPPORT;DLIB_JPEG_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\git\argagg\include;C:\git\dlib-19.4\dlib</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -72,7 +72,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>_CONSOLE;DLIB_DISABLE_ASSERTS;DLIB_JPEG_SUPPORT;DLIB_USE_CUDA;NDEBUG;%(PreprocessorDefinitions);DLIB_JPEG_SUPPORT;DLIB_JPEG_SUPPORT</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_RGB;_CONSOLE;DLIB_DISABLE_ASSERTS;DLIB_JPEG_SUPPORT;DLIB_USE_CUDA;NDEBUG;%(PreprocessorDefinitions);DLIB_JPEG_SUPPORT;DLIB_JPEG_SUPPORT</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\git\argagg\include;C:\git\dlib-19.4\dlib</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
