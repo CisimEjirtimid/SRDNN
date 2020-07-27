@@ -1,4 +1,4 @@
-# dlib_SRDNN
+# SRDNN
 
 ## Super-Resolution using Deep Neural Networks, a *C++ Project*
 
